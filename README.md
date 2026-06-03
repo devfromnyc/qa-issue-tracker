@@ -17,6 +17,7 @@ Kanban-style QA issue logging for release cycles — built to replace Excel spre
 |--------|-------------|
 | Kanban board | Drag issues across To Do → In Progress → In Review → Done |
 | Issue tracking | Auto `QA-#` IDs, titles, descriptions, priorities |
+| Conversation | Threaded comments on each issue for notes and discrepancy discussion |
 | Color tags | Bug, Regression, UI, Performance, etc. |
 | Filter & sort | Priority, color tag, keyword search, sort by priority/date |
 | Auth | Email/password registration and sign-in |

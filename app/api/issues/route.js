@@ -5,6 +5,7 @@ import { canAccessBoard } from "@/lib/boardAccess";
 import { normalizeAssignee } from "@/lib/issueAssignee";
 import Board from "@/models/Board";
 import Issue from "@/models/Issue";
+import Comment from "@/models/Comment";
 
 export async function GET(request) {
   const session = await requireSession();
@@ -27,9 +28,23 @@ export async function GET(request) {
   }
 
   const issues = await Issue.find({ boardId }).sort({ order: 1, createdAt: 1 }).lean();
+  const issueIds = issues.map((i) => i._id);
+
+  const commentCounts = await Comment.aggregate([
+    { $match: { issueId: { $in: issueIds } } },
+    { $group: { _id: "$issueId", count: { $sum: 1 } } },
+  ]);
+  const countMap = Object.fromEntries(
+    commentCounts.map((row) => [row._id.toString(), row.count]),
+  );
 
   return NextResponse.json({
-    issues: issues.map((i) => ({ ...i, _id: i._id.toString(), boardId: i.boardId.toString() })),
+    issues: issues.map((i) => ({
+      ...i,
+      _id: i._id.toString(),
+      boardId: i.boardId.toString(),
+      commentCount: countMap[i._id.toString()] || 0,
+    })),
   });
 }
 

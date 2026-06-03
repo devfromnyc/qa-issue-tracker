@@ -3,6 +3,7 @@ import { connectDB } from "@/lib/mongodb";
 import { requireSession } from "@/lib/session";
 import Board from "@/models/Board";
 import Issue from "@/models/Issue";
+import Comment from "@/models/Comment";
 
 export async function GET(request) {
   const session = await requireSession();
@@ -44,20 +45,42 @@ export async function GET(request) {
 
   const regex = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
 
-  const issues = await Issue.find({
-    boardId: { $in: boardIds },
-    $or: [
-      { title: regex },
-      { description: regex },
-      { issueNumber: regex },
-      { assigneeName: regex },
-    ],
-  })
-    .sort({ updatedAt: -1 })
-    .limit(50)
-    .lean();
+  const [issues, commentMatches] = await Promise.all([
+    Issue.find({
+      boardId: { $in: boardIds },
+      $or: [
+        { title: regex },
+        { description: regex },
+        { issueNumber: regex },
+        { assigneeName: regex },
+      ],
+    })
+      .sort({ updatedAt: -1 })
+      .limit(50)
+      .lean(),
+    Comment.find({ boardId: { $in: boardIds }, body: regex })
+      .select("issueId")
+      .limit(50)
+      .lean(),
+  ]);
 
-  const results = issues.map((issue) => {
+  const issueIdSet = new Set(issues.map((i) => i._id.toString()));
+  const extraIds = [
+    ...new Set(
+      commentMatches
+        .map((c) => c.issueId.toString())
+        .filter((id) => !issueIdSet.has(id)),
+    ),
+  ];
+
+  let extraIssues = [];
+  if (extraIds.length > 0) {
+    extraIssues = await Issue.find({ _id: { $in: extraIds } }).lean();
+  }
+
+  const merged = [...issues, ...extraIssues].slice(0, 50);
+
+  const results = merged.map((issue) => {
     const board = boardMap[issue.boardId.toString()];
     return {
       ...issue,

@@ -35,11 +35,21 @@ export default function IssueCard({ issue, onClick, readOnly }) {
     >
       <div className="mb-2 flex items-start justify-between gap-2">
         <span className="font-mono text-xs text-indigo-400">{issue.issueNumber}</span>
-        <span
-          className={`rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase ${PRIORITY_STYLES[issue.priority]}`}
-        >
-          {issue.priority}
-        </span>
+        <div className="flex items-center gap-1.5">
+          {issue.commentCount > 0 && (
+            <span
+              className="rounded bg-slate-800 px-1.5 py-0.5 text-[10px] text-slate-400"
+              title="Comments in conversation"
+            >
+              {issue.commentCount} 💬
+            </span>
+          )}
+          <span
+            className={`rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase ${PRIORITY_STYLES[issue.priority]}`}
+          >
+            {issue.priority}
+          </span>
+        </div>
       </div>
 
       <div className="mb-2 flex items-center gap-2">
