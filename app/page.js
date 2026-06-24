@@ -51,6 +51,12 @@ export default async function HomePage() {
 
       <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
         <Link
+          href="/demo"
+          className="rounded-lg border border-indigo-500/60 bg-indigo-950/40 px-6 py-3 font-medium text-indigo-100 hover:bg-indigo-950/60 transition-colors"
+        >
+          Try interactive demo
+        </Link>
+        <Link
           href="/register"
           className="rounded-lg bg-indigo-600 px-6 py-3 font-medium text-white hover:bg-indigo-500 transition-colors"
         >
@@ -61,12 +67,6 @@ export default async function HomePage() {
           className="rounded-lg border border-slate-600 px-6 py-3 font-medium text-slate-200 hover:bg-slate-800 transition-colors"
         >
           Sign in
-        </Link>
-        <Link
-          href="/login?guest=1"
-          className="rounded-lg border border-amber-800/60 bg-amber-950/30 px-6 py-3 font-medium text-amber-200 hover:bg-amber-950/50 transition-colors"
-        >
-          Continue as guest
         </Link>
       </div>
     </div>

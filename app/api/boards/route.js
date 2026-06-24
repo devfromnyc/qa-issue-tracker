@@ -56,7 +56,7 @@ export async function GET(request) {
 
   const ownerIds = [
     ...new Set(
-      boards.map((b) => b.ownerId).filter((id) => id && !id.startsWith("guest_")),
+      boards.map((b) => b.ownerId).filter(Boolean),
     ),
   ];
   const owners = await User.find({ _id: { $in: ownerIds } })
@@ -72,7 +72,7 @@ export async function GET(request) {
       ...b,
       _id: b._id.toString(),
       issueCount: countMap[b._id.toString()] || 0,
-      ownerName: owner?.name || (b.ownerId?.startsWith("guest_") ? "Guest" : "Unknown"),
+      ownerName: owner?.name || "Unknown",
       isOwnedByMe: b.ownerId === session.user.id,
     };
   });
@@ -107,7 +107,6 @@ export async function POST(request) {
       description: description?.trim() || "",
       releaseVersion: releaseVersion?.trim() || "",
       ownerId: session.user.id,
-      isGuestBoard: session.user.isGuest,
     });
 
     return NextResponse.json(

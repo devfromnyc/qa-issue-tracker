@@ -35,7 +35,6 @@ const BoardSchema = new mongoose.Schema(
       ],
       default: [],
     },
-    isGuestBoard: { type: Boolean, default: false },
     archivedAt: { type: Date, default: null },
     releaseVersion: { type: String, default: "" },
   },

@@ -85,7 +85,12 @@ function DroppableColumn({ column, children, count }) {
   );
 }
 
-export default function BoardKanban({ board, initialIssues, readOnly }) {
+export default function BoardKanban({
+  board,
+  initialIssues,
+  readOnly,
+  demoApi,
+}) {
   const [issues, setIssues] = useState(initialIssues);
   const [search, setSearch] = useState("");
   const [priorityFilter, setPriorityFilter] = useState("all");
@@ -102,11 +107,15 @@ export default function BoardKanban({ board, initialIssues, readOnly }) {
   );
 
   useEffect(() => {
+    if (demoApi?.assigneeOptions) {
+      setAssigneeOptions(demoApi.assigneeOptions);
+      return;
+    }
     fetch(`/api/boards/${board._id}/assignees`)
       .then((res) => res.json())
       .then((data) => setAssigneeOptions(data.assignees || []))
       .catch(() => setAssigneeOptions([]));
-  }, [board._id]);
+  }, [board._id, demoApi]);
 
   const filtered = useMemo(
     () =>
@@ -132,6 +141,12 @@ export default function BoardKanban({ board, initialIssues, readOnly }) {
 
   const persistReorder = useCallback(
     async (nextIssues) => {
+      if (demoApi?.reorderIssues) {
+        const updated = await demoApi.reorderIssues(nextIssues);
+        setIssues(updated);
+        return;
+      }
+
       const updates = nextIssues.map((issue, index) => ({
         issueId: issue._id,
         status: issue.status,
@@ -152,7 +167,7 @@ export default function BoardKanban({ board, initialIssues, readOnly }) {
       const data = await res.json();
       setIssues(data.issues);
     },
-    [board._id],
+    [board._id, demoApi],
   );
 
   function handleDragStart(event) {
@@ -221,6 +236,18 @@ export default function BoardKanban({ board, initialIssues, readOnly }) {
   }
 
   async function handleSaveIssue(form, existing) {
+    if (demoApi?.saveIssue) {
+      const updated = await demoApi.saveIssue(form, existing);
+      if (existing) {
+        setIssues((prev) =>
+          prev.map((i) => (i._id === existing._id ? updated : i)),
+        );
+      } else {
+        setIssues((prev) => [...prev, updated]);
+      }
+      return;
+    }
+
     if (existing) {
       const res = await fetch(`/api/issues/${existing._id}`, {
         method: "PATCH",
@@ -331,6 +358,7 @@ export default function BoardKanban({ board, initialIssues, readOnly }) {
         boardId={board._id}
         readOnly={readOnly}
         onSave={handleSaveIssue}
+        demoApi={demoApi}
       />
     </div>
   );

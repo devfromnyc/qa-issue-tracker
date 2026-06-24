@@ -21,6 +21,7 @@ export default function IssueModal({
   columns,
   boardId,
   readOnly,
+  demoApi,
 }) {
   const [form, setForm] = useState(emptyForm);
   const [assignees, setAssignees] = useState([]);
@@ -44,12 +45,17 @@ export default function IssueModal({
   }, [issue, open, columns]);
 
   useEffect(() => {
-    if (!open || !boardId) return;
+    if (!open) return;
+    if (demoApi?.assigneeOptions) {
+      setAssignees(demoApi.assigneeOptions);
+      return;
+    }
+    if (!boardId) return;
     fetch(`/api/boards/${boardId}/assignees`)
       .then((res) => res.json())
       .then((data) => setAssignees(data.assignees || []))
       .catch(() => setAssignees([]));
-  }, [open, boardId]);
+  }, [open, boardId, demoApi]);
 
   if (!open) return null;
 
@@ -210,7 +216,11 @@ export default function IssueModal({
           </div>
 
           {issue?._id && (
-            <IssueConversation issueId={issue._id} readOnly={readOnly} />
+            <IssueConversation
+              issueId={issue._id}
+              readOnly={readOnly}
+              demoApi={demoApi}
+            />
           )}
 
           {!issue?._id && (

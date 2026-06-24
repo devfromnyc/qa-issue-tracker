@@ -80,16 +80,6 @@ export default function BoardDirectoryPage() {
         </Link>
       </div>
 
-      {session?.user?.isGuest && (
-        <div className="mb-6 rounded-lg border border-amber-800/40 bg-amber-950/30 px-4 py-3 text-sm text-amber-100">
-          Guest mode: you can use all boards, but{" "}
-          <Link href="/register" className="underline text-amber-200">
-            register
-          </Link>{" "}
-          for a persistent account.
-        </div>
-      )}
-
       <div className="mb-6 flex flex-wrap items-end gap-3">
         <div className="flex rounded-lg border border-slate-700 p-0.5">
           {[

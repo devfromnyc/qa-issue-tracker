@@ -31,14 +31,7 @@ export default function Navbar() {
               >
                 Search
               </Link>
-              <span className="text-slate-500">
-                {session.user.name}
-                {session.user.isGuest && (
-                  <span className="ml-1 rounded bg-amber-900/50 px-1.5 py-0.5 text-xs text-amber-200">
-                    Guest
-                  </span>
-                )}
-              </span>
+              <span className="text-slate-500">{session.user.name}</span>
               <button
                 type="button"
                 onClick={() => signOut({ callbackUrl: "/" })}
@@ -49,6 +42,12 @@ export default function Navbar() {
             </>
           ) : (
             <>
+              <Link
+                href="/demo"
+                className="text-slate-300 hover:text-white transition-colors"
+              >
+                Demo
+              </Link>
               <Link
                 href="/login"
                 className="text-slate-300 hover:text-white transition-colors"

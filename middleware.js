@@ -1,0 +1,16 @@
+import { withAuth } from "next-auth/middleware";
+
+export default withAuth({
+  pages: {
+    signIn: "/login",
+  },
+});
+
+export const config = {
+  matcher: [
+    "/boards/:path*",
+    "/search",
+    "/api/boards/:path*",
+    "/api/issues/:path*",
+  ],
+};

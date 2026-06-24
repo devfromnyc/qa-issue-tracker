@@ -12,7 +12,7 @@ function formatWhen(dateStr) {
   });
 }
 
-export default function IssueConversation({ issueId, readOnly }) {
+export default function IssueConversation({ issueId, readOnly, demoApi }) {
   const { data: session } = useSession();
   const [comments, setComments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -22,13 +22,18 @@ export default function IssueConversation({ issueId, readOnly }) {
 
   const loadComments = useCallback(async () => {
     setLoading(true);
+    if (demoApi?.getComments) {
+      setComments(demoApi.getComments(issueId));
+      setLoading(false);
+      return;
+    }
     const res = await fetch(`/api/issues/${issueId}/comments`);
     const data = await res.json();
     if (res.ok) {
       setComments(data.comments || []);
     }
     setLoading(false);
-  }, [issueId]);
+  }, [issueId, demoApi]);
 
   useEffect(() => {
     if (issueId) loadComments();
@@ -40,6 +45,18 @@ export default function IssueConversation({ issueId, readOnly }) {
 
     setPosting(true);
     setError("");
+
+    if (demoApi?.addComment) {
+      const comment = await demoApi.addComment(issueId, body);
+      setPosting(false);
+      if (!comment) {
+        setError("Failed to post comment.");
+        return;
+      }
+      setBody("");
+      setComments((prev) => [...prev, comment]);
+      return;
+    }
 
     const res = await fetch(`/api/issues/${issueId}/comments`, {
       method: "POST",
@@ -62,6 +79,12 @@ export default function IssueConversation({ issueId, readOnly }) {
   async function handleDelete(commentId) {
     if (!confirm("Delete this comment?")) return;
 
+    if (demoApi?.deleteComment) {
+      await demoApi.deleteComment(issueId, commentId);
+      setComments((prev) => prev.filter((c) => c._id !== commentId));
+      return;
+    }
+
     const res = await fetch(`/api/issues/${issueId}/comments/${commentId}`, {
       method: "DELETE",
     });
@@ -70,6 +93,8 @@ export default function IssueConversation({ issueId, readOnly }) {
       setComments((prev) => prev.filter((c) => c._id !== commentId));
     }
   }
+
+  const ownAuthorId = demoApi ? "demo-you" : session?.user?.id;
 
   return (
     <div className="border-t border-slate-800 pt-4">
@@ -85,7 +110,7 @@ export default function IssueConversation({ issueId, readOnly }) {
       ) : (
         <ul className="mb-4 max-h-48 space-y-3 overflow-y-auto pr-1">
           {comments.map((comment) => {
-            const isOwn = comment.authorId === session?.user?.id;
+            const isOwn = comment.authorId === ownAuthorId;
             return (
               <li
                 key={comment._id}
@@ -94,9 +119,6 @@ export default function IssueConversation({ issueId, readOnly }) {
                 <div className="mb-1 flex items-center justify-between gap-2">
                   <span className="text-xs font-medium text-slate-300">
                     {comment.authorName}
-                    {comment.authorId?.startsWith("guest_") && (
-                      <span className="ml-1 text-slate-500">(guest)</span>
-                    )}
                   </span>
                   <span className="shrink-0 text-[10px] text-slate-500">
                     {formatWhen(comment.createdAt)}

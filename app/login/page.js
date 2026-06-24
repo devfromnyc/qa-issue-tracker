@@ -1,37 +1,16 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { signIn } from "next-auth/react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 
-function LoginForm() {
+export default function LoginPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    if (searchParams.get("guest") === "1") {
-      handleGuest();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams]);
-
-  async function handleGuest() {
-    setLoading(true);
-    setError("");
-    const result = await signIn("guest", { redirect: false });
-    setLoading(false);
-    if (result?.error) {
-      setError("Guest sign-in failed.");
-      return;
-    }
-    router.push("/boards");
-    router.refresh();
-  }
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -59,7 +38,7 @@ function LoginForm() {
     <div className="mx-auto max-w-md px-4 py-12">
       <h1 className="mb-2 text-2xl font-bold text-white">Sign in</h1>
       <p className="mb-8 text-sm text-slate-400">
-        Access your QA boards or continue as a guest for quick triage.
+        Sign in to access your team&apos;s QA boards and issue history.
       </p>
 
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -103,30 +82,16 @@ function LoginForm() {
         </button>
       </form>
 
-      <div className="mt-6 space-y-3 border-t border-slate-800 pt-6 text-center text-sm">
-        <button
-          type="button"
-          onClick={handleGuest}
-          disabled={loading}
-          className="w-full rounded-lg border border-amber-800/50 py-2.5 text-amber-200 hover:bg-amber-950/40 disabled:opacity-50"
-        >
-          Continue as guest
-        </button>
-        <p className="text-slate-500">
-          No account?{" "}
-          <Link href="/register" className="text-indigo-400 hover:text-indigo-300">
-            Register
-          </Link>
-        </p>
-      </div>
+      <p className="mt-6 text-center text-sm text-slate-500">
+        No account?{" "}
+        <Link href="/register" className="text-indigo-400 hover:text-indigo-300">
+          Register
+        </Link>
+        {" · "}
+        <Link href="/demo" className="text-indigo-400 hover:text-indigo-300">
+          Try demo
+        </Link>
+      </p>
     </div>
-  );
-}
-
-export default function LoginPage() {
-  return (
-    <Suspense fallback={<div className="p-12 text-center text-slate-400">Loading…</div>}>
-      <LoginForm />
-    </Suspense>
   );
 }
