@@ -39,8 +39,7 @@ export default function IssueConversation({ issueId, readOnly, demoApi }) {
     if (issueId) loadComments();
   }, [issueId, loadComments]);
 
-  async function handlePost(e) {
-    e.preventDefault();
+  async function handlePost() {
     if (readOnly || !body.trim()) return;
 
     setPosting(true);
@@ -147,7 +146,7 @@ export default function IssueConversation({ issueId, readOnly, demoApi }) {
           Archived board — conversation is read-only.
         </p>
       ) : (
-        <form onSubmit={handlePost} className="space-y-2">
+        <div className="space-y-2">
           <textarea
             rows={3}
             value={body}
@@ -161,13 +160,14 @@ export default function IssueConversation({ issueId, readOnly, demoApi }) {
             </p>
           )}
           <button
-            type="submit"
+            type="button"
+            onClick={handlePost}
             disabled={posting || !body.trim()}
             className="rounded-lg bg-slate-700 px-3 py-1.5 text-sm font-medium text-slate-100 hover:bg-slate-600 disabled:opacity-50"
           >
             {posting ? "Posting…" : "Add comment"}
           </button>
-        </form>
+        </div>
       )}
     </div>
   );

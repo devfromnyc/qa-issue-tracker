@@ -215,20 +215,6 @@ export default function IssueModal({
             </select>
           </div>
 
-          {issue?._id && (
-            <IssueConversation
-              issueId={issue._id}
-              readOnly={readOnly}
-              demoApi={demoApi}
-            />
-          )}
-
-          {!issue?._id && (
-            <p className="rounded-lg border border-dashed border-slate-700 px-3 py-2 text-xs text-slate-500">
-              Save this issue first to start the conversation thread.
-            </p>
-          )}
-
           {error && (
             <p className="text-sm text-red-400" role="alert">
               {error}
@@ -254,6 +240,20 @@ export default function IssueModal({
             )}
           </div>
         </form>
+
+        <div className="space-y-4 px-5 pb-5">
+          {issue?._id ? (
+            <IssueConversation
+              issueId={issue._id}
+              readOnly={readOnly}
+              demoApi={demoApi}
+            />
+          ) : (
+            <p className="rounded-lg border border-dashed border-slate-700 px-3 py-2 text-xs text-slate-500">
+              Save this issue first to start the conversation thread.
+            </p>
+          )}
+        </div>
       </div>
     </div>
   );

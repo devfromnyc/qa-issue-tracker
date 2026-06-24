@@ -25,12 +25,16 @@ export default function IssueCard({ issue, onClick, readOnly }) {
   };
 
   const colorHex = getColorHex(issue.colorTag);
+  const dragProps = readOnly ? {} : { ...attributes, ...listeners };
 
   return (
     <article
       ref={setNodeRef}
       style={style}
-      className="cursor-pointer rounded-lg border border-slate-700 bg-slate-900 p-3 shadow-sm hover:border-slate-600 transition-colors"
+      className={`rounded-lg border border-slate-700 bg-slate-900 p-3 shadow-sm transition-colors hover:border-slate-600 ${
+        readOnly ? "cursor-pointer" : "cursor-grab active:cursor-grabbing touch-none"
+      }`}
+      {...dragProps}
       onClick={() => onClick(issue)}
     >
       <div className="mb-2 flex items-start justify-between gap-2">
@@ -65,18 +69,6 @@ export default function IssueCard({ issue, onClick, readOnly }) {
         <p className="mb-1 text-[11px] text-slate-400">
           <span className="text-slate-500">Assignee:</span> {issue.assigneeName}
         </p>
-      )}
-
-      {!readOnly && (
-        <button
-          type="button"
-          className="mt-1 w-full cursor-grab text-left text-[10px] text-slate-500 active:cursor-grabbing"
-          {...attributes}
-          {...listeners}
-          onClick={(e) => e.stopPropagation()}
-        >
-          Drag to move
-        </button>
       )}
     </article>
   );

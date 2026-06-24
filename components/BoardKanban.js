@@ -9,6 +9,7 @@ import {
   useSensors,
   closestCorners,
   useDroppable,
+  pointerWithin,
 } from "@dnd-kit/core";
 import {
   SortableContext,
@@ -92,6 +93,11 @@ export default function BoardKanban({
   demoApi,
 }) {
   const [issues, setIssues] = useState(initialIssues);
+
+  useEffect(() => {
+    setIssues(initialIssues);
+  }, [initialIssues]);
+
   const [search, setSearch] = useState("");
   const [priorityFilter, setPriorityFilter] = useState("all");
   const [colorFilter, setColorFilter] = useState("all");
@@ -136,6 +142,16 @@ export default function BoardKanban({
     }
     return map;
   }, [board.columns, filtered]);
+
+  const issuesByColumnAll = useMemo(() => {
+    const map = {};
+    for (const col of board.columns) {
+      map[col.id] = issues
+        .filter((i) => i.status === col.id)
+        .sort((a, b) => a.order - b.order);
+    }
+    return map;
+  }, [board.columns, issues]);
 
   const activeIssue = activeId ? issues.find((i) => i._id === activeId) : null;
 
@@ -190,15 +206,14 @@ export default function BoardKanban({
     const columnMatch = board.columns.find((c) => c.id === overId);
     if (columnMatch) {
       targetStatus = columnMatch.id;
-      targetIndex = issuesByColumn[targetStatus]?.length ?? 0;
+      targetIndex = issuesByColumnAll[targetStatus]?.length ?? 0;
     } else {
       const overIssue = issues.find((i) => i._id === overId);
       if (overIssue) {
         targetStatus = overIssue.status;
-        const colIssues = issues
-          .filter((i) => i.status === targetStatus)
-          .sort((a, b) => a.order - b.order);
+        const colIssues = issuesByColumnAll[targetStatus] || [];
         targetIndex = colIssues.findIndex((i) => i._id === overId);
+        if (targetIndex < 0) targetIndex = colIssues.length;
       }
     }
 
@@ -302,7 +317,13 @@ export default function BoardKanban({
 
       <DndContext
         sensors={sensors}
-        collisionDetection={closestCorners}
+        collisionDetection={(args) => {
+          const pointerCollisions = pointerWithin(args);
+          if (pointerCollisions.length > 0) {
+            return pointerCollisions;
+          }
+          return closestCorners(args);
+        }}
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
