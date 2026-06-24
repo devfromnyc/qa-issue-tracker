@@ -87,6 +87,33 @@ qa-issue-tracker/
 └── models/                 # User, Board, Issue schemas
 ```
 
+## Data model (boards = “sheets”)
+
+Each **board** is one MongoDB document — the equivalent of an Excel workbook tab for a release QA cycle. It owns its own metadata, kanban **columns** (embedded array), and links to all issues on that sheet.
+
+```
+User (registered accounts only)
+  └── ownerId / createdBy / authorId / assigneeId (string refs, not ObjectId)
+
+Board  ← one document per “sheet”
+  ├── name, projectName, releaseVersion, status (active|archived)
+  ├── columns[] (embedded: todo, in_progress, …)
+  ├── assigneeRoster[] (extra names for assignees)
+  └── ownerId → User id or guest_* id
+
+Issue  ← rows on the sheet
+  ├── boardId → Board (required, indexed)
+  ├── issueNumber (unique per board: QA-1, QA-2, …)
+  ├── status → must match a column id on parent Board
+  └── createdBy, assigneeId, assigneeName
+
+Comment  ← conversation on an issue
+  ├── issueId → Issue (required)
+  └── boardId → Board (denormalized for queries; always matches issue’s board)
+```
+
+Deleting a **board** removes all its **issues** and **comments**. Deleting an **issue** removes its **comments**.
+
 ## Why MongoDB over SQL?
 
 Issue payloads vary (long descriptions, future custom fields). Archiving whole boards and text search maps naturally to document storage without heavy migrations — a good fit for QA tooling on Vercel serverless.

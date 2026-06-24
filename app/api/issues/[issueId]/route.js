@@ -3,6 +3,7 @@ import { connectDB } from "@/lib/mongodb";
 import { requireSession } from "@/lib/session";
 import { canAccessBoard } from "@/lib/boardAccess";
 import { normalizeAssignee } from "@/lib/issueAssignee";
+import { deleteIssueAndChildren } from "@/lib/entityLinks";
 import Board from "@/models/Board";
 import Issue from "@/models/Issue";
 
@@ -95,7 +96,7 @@ export async function DELETE(request, { params }) {
     return NextResponse.json({ error: "Issue not found." }, { status: 404 });
   }
 
-  await Issue.findByIdAndDelete(issueId);
+  await deleteIssueAndChildren(issueId);
 
   return NextResponse.json({ success: true });
 }

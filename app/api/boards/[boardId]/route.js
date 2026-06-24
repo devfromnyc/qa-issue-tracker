@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import { requireSession } from "@/lib/session";
-import { canAccessBoard } from "@/lib/auth";
+import { canAccessBoard } from "@/lib/boardAccess";
+import { deleteBoardAndChildren } from "@/lib/entityLinks";
 import Board from "@/models/Board";
 
 export async function GET(request, { params }) {
@@ -75,7 +76,7 @@ export async function DELETE(request, { params }) {
     return NextResponse.json({ error: "Board not found." }, { status: 404 });
   }
 
-  await Board.findByIdAndDelete(boardId);
+  await deleteBoardAndChildren(boardId);
 
   return NextResponse.json({ success: true });
 }

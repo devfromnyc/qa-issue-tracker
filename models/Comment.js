@@ -22,5 +22,6 @@ const CommentSchema = new mongoose.Schema(
 );
 
 CommentSchema.index({ body: "text" });
+CommentSchema.index({ boardId: 1, issueId: 1 });
 
 export default mongoose.models.Comment || mongoose.model("Comment", CommentSchema);

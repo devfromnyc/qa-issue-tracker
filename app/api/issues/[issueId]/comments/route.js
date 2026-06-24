@@ -30,7 +30,10 @@ export async function GET(request, { params }) {
     return NextResponse.json({ error: "Issue not found." }, { status: 404 });
   }
 
-  const comments = await Comment.find({ issueId })
+  const comments = await Comment.find({
+    issueId,
+    boardId: result.issue.boardId,
+  })
     .sort({ createdAt: 1 })
     .lean();
 
