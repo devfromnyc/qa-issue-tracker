@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { getColorHex } from "@/lib/constants";
+import { browserLabel, deviceLabel } from "@/lib/constants";
 
 export default function SearchPage() {
   const { status } = useSession();
@@ -82,10 +82,6 @@ export default function SearchPage() {
             className="rounded-xl border border-slate-800 bg-slate-900/50 p-4"
           >
             <div className="mb-1 flex items-center gap-2">
-              <span
-                className="h-2.5 w-2.5 rounded-full"
-                style={{ backgroundColor: getColorHex(issue.colorTag) }}
-              />
               <span className="font-mono text-sm text-indigo-400">
                 {issue.issueNumber}
               </span>
@@ -98,8 +94,17 @@ export default function SearchPage() {
             <h3 className="font-medium text-slate-100">{issue.title}</h3>
             <p className="mt-1 text-xs text-slate-500">
               {issue.projectName} · {issue.boardName}
+              {issue.pageName && ` · ${issue.pageName}`}
               {issue.assigneeName && ` · ${issue.assigneeName}`}
+              {issue.issueAuthor && ` · ${issue.issueAuthor}`}
             </p>
+            {(issue.device || issue.browser) && (
+              <p className="mt-1 text-xs text-slate-500">
+                {issue.device && deviceLabel(issue.device)}
+                {issue.device && issue.browser && " · "}
+                {issue.browser && browserLabel(issue.browser)}
+              </p>
+            )}
             {issue.description && (
               <p className="mt-2 line-clamp-2 text-sm text-slate-400">
                 {issue.description}

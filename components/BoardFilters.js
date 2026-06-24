@@ -1,14 +1,12 @@
 "use client";
 
-import { PRIORITIES, COLOR_TAGS } from "@/lib/constants";
+import { PRIORITIES } from "@/lib/constants";
 
 export default function BoardFilters({
   search,
   onSearchChange,
   priorityFilter,
   onPriorityChange,
-  colorFilter,
-  onColorChange,
   assigneeFilter,
   onAssigneeChange,
   assigneeOptions,
@@ -25,7 +23,7 @@ export default function BoardFilters({
           type="search"
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
-          placeholder="Issue #, title, or keywords…"
+          placeholder="Issue #, title, page, author…"
           className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
         />
       </div>
@@ -43,24 +41,6 @@ export default function BoardFilters({
           {PRIORITIES.map((p) => (
             <option key={p} value={p}>
               {p.charAt(0).toUpperCase() + p.slice(1)}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      <div>
-        <label className="mb-1 block text-xs font-medium text-slate-400">
-          Color tag
-        </label>
-        <select
-          value={colorFilter}
-          onChange={(e) => onColorChange(e.target.value)}
-          className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100"
-        >
-          <option value="all">All</option>
-          {COLOR_TAGS.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.label}
             </option>
           ))}
         </select>

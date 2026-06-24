@@ -1,15 +1,20 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { PRIORITIES, COLOR_TAGS } from "@/lib/constants";
+import { useSession } from "next-auth/react";
+import { PRIORITIES, DEVICES, BROWSERS } from "@/lib/constants";
 import IssueConversation from "@/components/IssueConversation";
 
 const emptyForm = {
   title: "",
   description: "",
+  pageName: "",
+  device: "",
+  browser: "",
+  pageLink: "",
+  issueAuthor: "",
   priority: "medium",
-  colorTag: "gray",
-  status: "todo",
+  status: "new_issues",
   assigneeId: "",
 };
 
@@ -23,6 +28,7 @@ export default function IssueModal({
   readOnly,
   demoApi,
 }) {
+  const { data: session } = useSession();
   const [form, setForm] = useState(emptyForm);
   const [assignees, setAssignees] = useState([]);
   const [saving, setSaving] = useState(false);
@@ -33,16 +39,24 @@ export default function IssueModal({
       setForm({
         title: issue.title,
         description: issue.description || "",
+        pageName: issue.pageName || "",
+        device: issue.device || "",
+        browser: issue.browser || "",
+        pageLink: issue.pageLink || "",
+        issueAuthor: issue.issueAuthor || "",
         priority: issue.priority,
-        colorTag: issue.colorTag,
         status: issue.status,
         assigneeId: issue.assigneeId || "",
       });
     } else {
-      setForm({ ...emptyForm, status: columns?.[0]?.id || "todo" });
+      setForm({
+        ...emptyForm,
+        status: columns?.[0]?.id || "new_issues",
+        issueAuthor: demoApi ? "You (demo)" : session?.user?.name || "",
+      });
     }
     setError("");
-  }, [issue, open, columns]);
+  }, [issue, open, columns, session?.user?.name, demoApi]);
 
   useEffect(() => {
     if (!open) return;
@@ -124,12 +138,92 @@ export default function IssueModal({
               back-and-forth notes.
             </p>
             <textarea
-              rows={5}
+              rows={4}
               disabled={readOnly}
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
               className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100 disabled:opacity-60"
               placeholder="Steps to reproduce, expected vs actual behavior…"
+            />
+          </div>
+
+          <div>
+            <label className="mb-1 block text-xs font-medium text-slate-400">
+              On what page
+            </label>
+            <input
+              disabled={readOnly}
+              value={form.pageName}
+              onChange={(e) => setForm({ ...form, pageName: e.target.value })}
+              placeholder="e.g. Login, Dashboard, Checkout"
+              className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100 disabled:opacity-60"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="mb-1 block text-xs font-medium text-slate-400">
+                Device
+              </label>
+              <select
+                disabled={readOnly}
+                value={form.device}
+                onChange={(e) => setForm({ ...form, device: e.target.value })}
+                className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100"
+              >
+                <option value="">Not specified</option>
+                {DEVICES.map((d) => (
+                  <option key={d.id} value={d.id}>
+                    {d.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="mb-1 block text-xs font-medium text-slate-400">
+                Browser
+              </label>
+              <select
+                disabled={readOnly}
+                value={form.browser}
+                onChange={(e) => setForm({ ...form, browser: e.target.value })}
+                className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100"
+              >
+                <option value="">Not specified</option>
+                {BROWSERS.map((b) => (
+                  <option key={b.id} value={b.id}>
+                    {b.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="mb-1 block text-xs font-medium text-slate-400">
+              Page link
+            </label>
+            <input
+              type="url"
+              disabled={readOnly}
+              value={form.pageLink}
+              onChange={(e) => setForm({ ...form, pageLink: e.target.value })}
+              placeholder="https://…"
+              className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100 disabled:opacity-60"
+            />
+          </div>
+
+          <div>
+            <label className="mb-1 block text-xs font-medium text-slate-400">
+              Issue author
+            </label>
+            <input
+              disabled={readOnly}
+              value={form.issueAuthor}
+              onChange={(e) => setForm({ ...form, issueAuthor: e.target.value })}
+              placeholder="Who reported this issue"
+              className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100 disabled:opacity-60"
             />
           </div>
 
@@ -154,17 +248,17 @@ export default function IssueModal({
 
             <div>
               <label className="mb-1 block text-xs font-medium text-slate-400">
-                Color tag
+                Status
               </label>
               <select
                 disabled={readOnly}
-                value={form.colorTag}
-                onChange={(e) => setForm({ ...form, colorTag: e.target.value })}
+                value={form.status}
+                onChange={(e) => setForm({ ...form, status: e.target.value })}
                 className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100"
               >
-                {COLOR_TAGS.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.label}
+                {columns.map((col) => (
+                  <option key={col.id} value={col.id}>
+                    {col.title}
                   </option>
                 ))}
               </select>
@@ -186,30 +280,6 @@ export default function IssueModal({
                 <option key={a.id} value={a.id}>
                   {a.label}
                   {a.email ? ` (${a.email})` : ""}
-                </option>
-              ))}
-            </select>
-            {!readOnly && assignees.length === 0 && (
-              <p className="mt-1 text-xs text-slate-500">
-                Register an account to appear here, or add names under &quot;Extra assignee
-                names&quot; on the board.
-              </p>
-            )}
-          </div>
-
-          <div>
-            <label className="mb-1 block text-xs font-medium text-slate-400">
-              Status
-            </label>
-            <select
-              disabled={readOnly}
-              value={form.status}
-              onChange={(e) => setForm({ ...form, status: e.target.value })}
-              className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100"
-            >
-              {columns.map((col) => (
-                <option key={col.id} value={col.id}>
-                  {col.title}
                 </option>
               ))}
             </select>

@@ -28,7 +28,7 @@ export default async function HomePage() {
         {[
           {
             title: "Kanban boards",
-            desc: "Drag issues between To Do, In Progress, In Review, and Done.",
+            desc: "Drag issues across New Issues, In Progress, Ready for UAT/QA, and more.",
           },
           {
             title: "Historical records",

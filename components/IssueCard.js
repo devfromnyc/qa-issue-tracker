@@ -2,7 +2,7 @@
 
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { getColorHex } from "@/lib/constants";
+import { browserLabel, deviceLabel } from "@/lib/constants";
 
 const PRIORITY_STYLES = {
   low: "bg-slate-700 text-slate-200",
@@ -24,7 +24,6 @@ export default function IssueCard({ issue, onClick, readOnly }) {
     opacity: isDragging ? 0.5 : 1,
   };
 
-  const colorHex = getColorHex(issue.colorTag);
   const dragProps = readOnly ? {} : { ...attributes, ...listeners };
 
   return (
@@ -56,14 +55,23 @@ export default function IssueCard({ issue, onClick, readOnly }) {
         </div>
       </div>
 
-      <div className="mb-2 flex items-center gap-2">
-        <span
-          className="h-2.5 w-2.5 shrink-0 rounded-full"
-          style={{ backgroundColor: colorHex }}
-          title={issue.colorTag}
-        />
-        <h3 className="text-sm font-medium text-slate-100 line-clamp-2">{issue.title}</h3>
-      </div>
+      <h3 className="mb-2 text-sm font-medium text-slate-100 line-clamp-2">{issue.title}</h3>
+
+      {(issue.pageName || issue.device || issue.browser) && (
+        <p className="mb-1 text-[11px] text-slate-500 line-clamp-1">
+          {issue.pageName && <span>{issue.pageName}</span>}
+          {issue.pageName && (issue.device || issue.browser) && " · "}
+          {issue.device && <span>{deviceLabel(issue.device)}</span>}
+          {issue.device && issue.browser && " · "}
+          {issue.browser && <span>{browserLabel(issue.browser)}</span>}
+        </p>
+      )}
+
+      {issue.issueAuthor && (
+        <p className="mb-1 text-[11px] text-slate-400">
+          <span className="text-slate-500">Author:</span> {issue.issueAuthor}
+        </p>
+      )}
 
       {issue.assigneeName && (
         <p className="mb-1 text-[11px] text-slate-400">

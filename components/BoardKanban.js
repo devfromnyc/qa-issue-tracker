@@ -22,7 +22,7 @@ import IssueModal from "@/components/IssueModal";
 
 function filterAndSortIssues(
   issues,
-  { search, priorityFilter, colorFilter, assigneeFilter, sortBy },
+  { search, priorityFilter, assigneeFilter, sortBy },
 ) {
   let list = [...issues];
 
@@ -33,16 +33,15 @@ function filterAndSortIssues(
         i.title.toLowerCase().includes(q) ||
         i.issueNumber.toLowerCase().includes(q) ||
         (i.description || "").toLowerCase().includes(q) ||
+        (i.pageName || "").toLowerCase().includes(q) ||
+        (i.pageLink || "").toLowerCase().includes(q) ||
+        (i.issueAuthor || "").toLowerCase().includes(q) ||
         (i.assigneeName || "").toLowerCase().includes(q),
     );
   }
 
   if (priorityFilter !== "all") {
     list = list.filter((i) => i.priority === priorityFilter);
-  }
-
-  if (colorFilter !== "all") {
-    list = list.filter((i) => i.colorTag === colorFilter);
   }
 
   if (assigneeFilter === "unassigned") {
@@ -73,7 +72,7 @@ function DroppableColumn({ column, children, count }) {
   return (
     <div
       ref={setNodeRef}
-      className={`flex w-72 shrink-0 flex-col rounded-xl border bg-slate-900/40 transition-colors ${
+      className={`flex w-64 shrink-0 flex-col rounded-xl border bg-slate-900/40 transition-colors ${
         isOver ? "border-indigo-500" : "border-slate-800"
       }`}
     >
@@ -100,7 +99,6 @@ export default function BoardKanban({
 
   const [search, setSearch] = useState("");
   const [priorityFilter, setPriorityFilter] = useState("all");
-  const [colorFilter, setColorFilter] = useState("all");
   const [assigneeFilter, setAssigneeFilter] = useState("all");
   const [assigneeOptions, setAssigneeOptions] = useState([]);
   const [sortBy, setSortBy] = useState("order");
@@ -128,11 +126,10 @@ export default function BoardKanban({
       filterAndSortIssues(issues, {
         search,
         priorityFilter,
-        colorFilter,
         assigneeFilter,
         sortBy,
       }),
-    [issues, search, priorityFilter, colorFilter, assigneeFilter, sortBy],
+    [issues, search, priorityFilter, assigneeFilter, sortBy],
   );
 
   const issuesByColumn = useMemo(() => {
@@ -293,8 +290,6 @@ export default function BoardKanban({
         onSearchChange={setSearch}
         priorityFilter={priorityFilter}
         onPriorityChange={setPriorityFilter}
-        colorFilter={colorFilter}
-        onColorChange={setColorFilter}
         assigneeFilter={assigneeFilter}
         onAssigneeChange={setAssigneeFilter}
         assigneeOptions={assigneeOptions}
@@ -361,7 +356,7 @@ export default function BoardKanban({
 
         <DragOverlay>
           {activeIssue ? (
-            <div className="w-72 opacity-90">
+            <div className="w-64 opacity-90">
               <IssueCard issue={activeIssue} readOnly onClick={() => {}} />
             </div>
           ) : null}

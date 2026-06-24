@@ -60,9 +60,13 @@ export async function POST(request) {
       boardId,
       title,
       description,
+      pageName,
+      device,
+      browser,
+      pageLink,
+      issueAuthor,
       status,
       priority,
-      colorTag,
       order,
       assigneeId,
     } = body;
@@ -85,7 +89,7 @@ export async function POST(request) {
     const issueNumber = `QA-${count + 1}`;
 
     const columnIds = board.columns.map((c) => c.id);
-    const issueStatus = columnIds.includes(status) ? status : "todo";
+    const issueStatus = columnIds.includes(status) ? status : "new_issues";
 
     const maxOrder = await Issue.findOne({ boardId, status: issueStatus })
       .sort({ order: -1 })
@@ -104,9 +108,13 @@ export async function POST(request) {
       issueNumber,
       title: title.trim(),
       description: description?.trim() || "",
+      pageName: pageName?.trim() || "",
+      device: device || "",
+      browser: browser || "",
+      pageLink: pageLink?.trim() || "",
+      issueAuthor: issueAuthor?.trim() || "",
       status: issueStatus,
       priority: priority || "medium",
-      colorTag: colorTag || "gray",
       order: order ?? (maxOrder?.order ?? 0) + 1,
       createdBy: session.user.id,
       ...assigneeFields,

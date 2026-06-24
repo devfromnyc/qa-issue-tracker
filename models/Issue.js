@@ -11,13 +11,25 @@ const IssueSchema = new mongoose.Schema(
     issueNumber: { type: String, required: true },
     title: { type: String, required: true, trim: true },
     description: { type: String, default: "" },
-    status: { type: String, required: true, default: "todo" },
+    pageName: { type: String, default: "", trim: true },
+    device: {
+      type: String,
+      enum: ["desktop", "mobile", ""],
+      default: "",
+    },
+    browser: {
+      type: String,
+      enum: ["chrome", "firefox", "edge", "safari", "all", ""],
+      default: "",
+    },
+    pageLink: { type: String, default: "", trim: true },
+    issueAuthor: { type: String, default: "", trim: true },
+    status: { type: String, required: true, default: "new_issues" },
     priority: {
       type: String,
       enum: ["low", "medium", "high", "critical"],
       default: "medium",
     },
-    colorTag: { type: String, default: "gray" },
     order: { type: Number, default: 0 },
     assigneeId: { type: String, default: null, index: true },
     assigneeName: { type: String, default: null },
@@ -26,7 +38,13 @@ const IssueSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-IssueSchema.index({ title: "text", description: "text", issueNumber: "text" });
+IssueSchema.index({
+  title: "text",
+  description: "text",
+  issueNumber: "text",
+  pageName: "text",
+  issueAuthor: "text",
+});
 IssueSchema.index({ boardId: 1, issueNumber: 1 }, { unique: true });
 
 export default mongoose.models.Issue || mongoose.model("Issue", IssueSchema);

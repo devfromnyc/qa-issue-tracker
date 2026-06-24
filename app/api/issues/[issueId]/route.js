@@ -38,17 +38,25 @@ export async function PATCH(request, { params }) {
     const allowed = [
       "title",
       "description",
+      "pageName",
+      "device",
+      "browser",
+      "pageLink",
+      "issueAuthor",
       "status",
       "priority",
-      "colorTag",
       "order",
     ];
+
+    const trimFields = ["title", "description", "pageName", "pageLink", "issueAuthor"];
 
     for (const key of allowed) {
       if (body[key] !== undefined) {
         if (key === "status") {
           const valid = board.columns.some((c) => c.id === body.status);
           if (valid) issue.status = body.status;
+        } else if (trimFields.includes(key) && typeof body[key] === "string") {
+          issue[key] = body[key].trim();
         } else {
           issue[key] = body[key];
         }

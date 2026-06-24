@@ -52,6 +52,9 @@ export async function GET(request) {
         { title: regex },
         { description: regex },
         { issueNumber: regex },
+        { pageName: regex },
+        { pageLink: regex },
+        { issueAuthor: regex },
         { assigneeName: regex },
       ],
     })
