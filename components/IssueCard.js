@@ -2,14 +2,7 @@
 
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { browserLabel, deviceLabel } from "@/lib/constants";
-
-const PRIORITY_STYLES = {
-  low: "bg-slate-700 text-slate-200",
-  medium: "bg-blue-900/60 text-blue-200",
-  high: "bg-amber-900/60 text-amber-200",
-  critical: "bg-red-900/70 text-red-200",
-};
+import { browserLabel, deviceLabel, getColumnTheme, getPriorityTheme } from "@/lib/constants";
 
 function ConversationIcon() {
   return (
@@ -44,12 +37,14 @@ export default function IssueCard({ issue, onClick, onOpenConversation, readOnly
 
   const dragProps = readOnly ? {} : { ...attributes, ...listeners };
   const commentCount = issue.commentCount || 0;
+  const statusTheme = getColumnTheme(issue.status);
+  const priorityTheme = getPriorityTheme(issue.priority);
 
   return (
     <article
       ref={setNodeRef}
       style={style}
-      className={`rounded-lg border border-slate-700 bg-slate-900 p-3 shadow-sm transition-colors hover:border-slate-600 ${
+      className={`rounded-lg border border-slate-700 border-l-4 p-3 shadow-sm transition-colors ${statusTheme.cardBorder} ${statusTheme.cardBg} ${statusTheme.cardHover} ${
         readOnly ? "cursor-pointer" : "cursor-grab active:cursor-grabbing touch-none"
       }`}
       {...dragProps}
@@ -65,7 +60,7 @@ export default function IssueCard({ issue, onClick, onOpenConversation, readOnly
               onOpenConversation?.(issue);
             }}
             onPointerDown={(e) => e.stopPropagation()}
-            className="relative flex h-7 w-7 items-center justify-center rounded-md text-slate-400 transition-colors hover:bg-slate-800 hover:text-indigo-300"
+            className="relative flex h-7 w-7 items-center justify-center rounded-md text-slate-400 transition-colors hover:bg-slate-800/80 hover:text-indigo-300"
             title={
               commentCount > 0
                 ? `Open conversation (${commentCount} comment${commentCount === 1 ? "" : "s"})`
@@ -85,7 +80,7 @@ export default function IssueCard({ issue, onClick, onOpenConversation, readOnly
             )}
           </button>
           <span
-            className={`rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase ${PRIORITY_STYLES[issue.priority]}`}
+            className={`rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase ${priorityTheme.badge}`}
           >
             {issue.priority}
           </span>

@@ -15,7 +15,11 @@ import {
   SortableContext,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { PRIORITY_WEIGHT } from "@/lib/constants";
+import {
+  PRIORITY_WEIGHT,
+  DEFAULT_COLUMNS,
+  getColumnTheme,
+} from "@/lib/constants";
 import BoardFilters from "@/components/BoardFilters";
 import IssueCard from "@/components/IssueCard";
 import IssueModal from "@/components/IssueModal";
@@ -69,15 +73,18 @@ function filterAndSortIssues(
 
 function DroppableColumn({ column, children, count }) {
   const { setNodeRef, isOver } = useDroppable({ id: column.id });
+  const columnTheme = getColumnTheme(column.id);
 
   return (
     <div
       ref={setNodeRef}
-      className={`flex w-64 shrink-0 flex-col rounded-xl border bg-slate-900/40 transition-colors ${
-        isOver ? "border-indigo-500" : "border-slate-800"
+      className={`flex w-64 shrink-0 flex-col rounded-xl border border-t-4 transition-colors ${
+        isOver
+          ? "border-indigo-500 border-t-indigo-500 bg-slate-900/40"
+          : `border-slate-800 ${columnTheme.columnAccent} ${columnTheme.columnBody}`
       }`}
     >
-      <div className="border-b border-slate-800 px-3 py-3">
+      <div className={`border-b border-slate-800/80 px-3 py-3 ${columnTheme.columnHeader}`}>
         <h3 className="font-medium text-slate-200">{column.title}</h3>
         <span className="text-xs text-slate-500">{count} issues</span>
       </div>
@@ -330,6 +337,19 @@ export default function BoardKanban({
           + Add issue
         </button>
       )}
+
+      <div className="flex flex-wrap items-center gap-3 text-[11px] text-slate-500">
+        <span className="font-medium text-slate-400">Status colors:</span>
+        {DEFAULT_COLUMNS.map((column) => {
+          const theme = getColumnTheme(column.id);
+          return (
+            <span key={column.id} className="inline-flex items-center gap-1.5">
+              <span className={`h-2.5 w-2.5 rounded-full ${theme.dot}`} />
+              <span>{column.title}</span>
+            </span>
+          );
+        })}
+      </div>
 
       <DndContext
         sensors={sensors}
