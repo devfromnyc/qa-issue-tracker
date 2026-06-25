@@ -44,14 +44,15 @@ export default function DemoPage() {
       getComments: (issueId) => getDemoComments(state, issueId),
       addComment: async (issueId, body) => {
         const snapshot = structuredClone(state);
-        const comment = addDemoComment(snapshot, issueId, body);
+        addDemoComment(snapshot, issueId, body);
         setState(snapshot);
-        return comment;
+        return getDemoComments(snapshot, issueId);
       },
       deleteComment: async (issueId, commentId) => {
         const snapshot = structuredClone(state);
         deleteDemoComment(snapshot, issueId, commentId);
         setState(snapshot);
+        return getDemoComments(snapshot, issueId);
       },
     };
   }, [state]);

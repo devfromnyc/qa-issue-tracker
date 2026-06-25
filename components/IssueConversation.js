@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 
 function formatWhen(dateStr) {
@@ -26,24 +26,34 @@ export default function IssueConversation({
   const [posting, setPosting] = useState(false);
   const [error, setError] = useState("");
 
-  const loadComments = useCallback(async () => {
-    setLoading(true);
-    if (demoApi?.getComments) {
-      setComments(demoApi.getComments(issueId));
-      setLoading(false);
-      return;
-    }
-    const res = await fetch(`/api/issues/${issueId}/comments`);
-    const data = await res.json();
-    if (res.ok) {
-      setComments(data.comments || []);
-    }
-    setLoading(false);
-  }, [issueId, demoApi]);
-
   useEffect(() => {
-    if (issueId) loadComments();
-  }, [issueId, loadComments]);
+    if (!issueId) return;
+    let cancelled = false;
+
+    async function syncComments() {
+      setLoading(true);
+      if (demoApi?.getComments) {
+        if (!cancelled) {
+          setComments(demoApi.getComments(issueId));
+          setLoading(false);
+        }
+        return;
+      }
+      const res = await fetch(`/api/issues/${issueId}/comments`);
+      const data = await res.json();
+      if (!cancelled) {
+        if (res.ok) {
+          setComments(data.comments || []);
+        }
+        setLoading(false);
+      }
+    }
+
+    syncComments();
+    return () => {
+      cancelled = true;
+    };
+  }, [issueId, demoApi]);
 
   async function handlePost() {
     if (readOnly || !body.trim()) return;
@@ -52,18 +62,15 @@ export default function IssueConversation({
     setError("");
 
     if (demoApi?.addComment) {
-      const comment = await demoApi.addComment(issueId, body);
+      const updatedComments = await demoApi.addComment(issueId, body);
       setPosting(false);
-      if (!comment) {
+      if (!updatedComments) {
         setError("Failed to post comment.");
         return;
       }
       setBody("");
-      setComments((prev) => {
-        const next = [...prev, comment];
-        onCommentCountChange?.(issueId, next.length);
-        return next;
-      });
+      setComments(updatedComments);
+      onCommentCountChange?.(issueId, updatedComments.length);
       return;
     }
 
@@ -93,12 +100,9 @@ export default function IssueConversation({
     if (!confirm("Delete this comment?")) return;
 
     if (demoApi?.deleteComment) {
-      await demoApi.deleteComment(issueId, commentId);
-      setComments((prev) => {
-        const next = prev.filter((c) => c._id !== commentId);
-        onCommentCountChange?.(issueId, next.length);
-        return next;
-      });
+      const updatedComments = await demoApi.deleteComment(issueId, commentId);
+      setComments(updatedComments);
+      onCommentCountChange?.(issueId, updatedComments.length);
       return;
     }
 
