@@ -11,7 +11,25 @@ const PRIORITY_STYLES = {
   critical: "bg-red-900/70 text-red-200",
 };
 
-export default function IssueCard({ issue, onClick, readOnly }) {
+function ConversationIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      className="h-4 w-4"
+      aria-hidden="true"
+    >
+      <path
+        fillRule="evenodd"
+        d="M4.804 21.644A6.707 6.707 0 006 21.75a6.721 6.721 0 003.583-1.029c.774.182 1.584.279 2.417.279 5.322 0 9.75-3.97 9.75-9 0-5.03-4.428-9-9.75-9s-9.75 3.97-9.75 9c0 2.034.93 3.952 2.572 5.23.364.292.59.731.58 1.198l-.12 2.299c-.037.698.592 1.23 1.257.97l2.57-1.088a9.721 9.721 0 002.173.245z"
+        clipRule="evenodd"
+      />
+    </svg>
+  );
+}
+
+export default function IssueCard({ issue, onClick, onOpenConversation, readOnly }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({
       id: issue._id,
@@ -25,6 +43,7 @@ export default function IssueCard({ issue, onClick, readOnly }) {
   };
 
   const dragProps = readOnly ? {} : { ...attributes, ...listeners };
+  const commentCount = issue.commentCount || 0;
 
   return (
     <article
@@ -39,14 +58,32 @@ export default function IssueCard({ issue, onClick, readOnly }) {
       <div className="mb-2 flex items-start justify-between gap-2">
         <span className="font-mono text-xs text-indigo-400">{issue.issueNumber}</span>
         <div className="flex items-center gap-1.5">
-          {issue.commentCount > 0 && (
-            <span
-              className="rounded bg-slate-800 px-1.5 py-0.5 text-[10px] text-slate-400"
-              title="Comments in conversation"
-            >
-              {issue.commentCount} 💬
-            </span>
-          )}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onOpenConversation?.(issue);
+            }}
+            onPointerDown={(e) => e.stopPropagation()}
+            className="relative flex h-7 w-7 items-center justify-center rounded-md text-slate-400 transition-colors hover:bg-slate-800 hover:text-indigo-300"
+            title={
+              commentCount > 0
+                ? `Open conversation (${commentCount} comment${commentCount === 1 ? "" : "s"})`
+                : "Open conversation"
+            }
+            aria-label={
+              commentCount > 0
+                ? `Open conversation, ${commentCount} comments`
+                : "Open conversation"
+            }
+          >
+            <ConversationIcon />
+            {commentCount > 0 && (
+              <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-indigo-600 px-1 text-[9px] font-semibold text-white">
+                {commentCount > 99 ? "99+" : commentCount}
+              </span>
+            )}
+          </button>
           <span
             className={`rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase ${PRIORITY_STYLES[issue.priority]}`}
           >

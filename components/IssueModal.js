@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { PRIORITIES, DEVICES, BROWSERS } from "@/lib/constants";
-import IssueConversation from "@/components/IssueConversation";
 
 const emptyForm = {
   title: "",
@@ -91,9 +90,7 @@ export default function IssueModal({
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4">
       <div
-        className={`max-h-[90vh] w-full overflow-y-auto rounded-xl border border-slate-700 bg-slate-900 shadow-xl ${
-          issue ? "max-w-2xl" : "max-w-lg"
-        }`}
+        className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-xl border border-slate-700 bg-slate-900 shadow-xl"
         role="dialog"
         aria-modal="true"
       >
@@ -134,8 +131,8 @@ export default function IssueModal({
               Description
             </label>
             <p className="mb-1 text-[10px] text-slate-500">
-              Main report — steps, expected vs actual. Use Conversation below for
-              back-and-forth notes.
+              Main report — steps, expected vs actual. Use the conversation icon on
+              the card for back-and-forth notes.
             </p>
             <textarea
               rows={4}
@@ -310,20 +307,6 @@ export default function IssueModal({
             )}
           </div>
         </form>
-
-        <div className="space-y-4 px-5 pb-5">
-          {issue?._id ? (
-            <IssueConversation
-              issueId={issue._id}
-              readOnly={readOnly}
-              demoApi={demoApi}
-            />
-          ) : (
-            <p className="rounded-lg border border-dashed border-slate-700 px-3 py-2 text-xs text-slate-500">
-              Save this issue first to start the conversation thread.
-            </p>
-          )}
-        </div>
       </div>
     </div>
   );

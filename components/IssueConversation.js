@@ -12,7 +12,13 @@ function formatWhen(dateStr) {
   });
 }
 
-export default function IssueConversation({ issueId, readOnly, demoApi }) {
+export default function IssueConversation({
+  issueId,
+  readOnly,
+  demoApi,
+  variant = "default",
+  onCommentCountChange,
+}) {
   const { data: session } = useSession();
   const [comments, setComments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -53,7 +59,11 @@ export default function IssueConversation({ issueId, readOnly, demoApi }) {
         return;
       }
       setBody("");
-      setComments((prev) => [...prev, comment]);
+      setComments((prev) => {
+        const next = [...prev, comment];
+        onCommentCountChange?.(issueId, next.length);
+        return next;
+      });
       return;
     }
 
@@ -72,7 +82,11 @@ export default function IssueConversation({ issueId, readOnly, demoApi }) {
     }
 
     setBody("");
-    setComments((prev) => [...prev, data.comment]);
+    setComments((prev) => {
+      const next = [...prev, data.comment];
+      onCommentCountChange?.(issueId, next.length);
+      return next;
+    });
   }
 
   async function handleDelete(commentId) {
@@ -80,7 +94,11 @@ export default function IssueConversation({ issueId, readOnly, demoApi }) {
 
     if (demoApi?.deleteComment) {
       await demoApi.deleteComment(issueId, commentId);
-      setComments((prev) => prev.filter((c) => c._id !== commentId));
+      setComments((prev) => {
+        const next = prev.filter((c) => c._id !== commentId);
+        onCommentCountChange?.(issueId, next.length);
+        return next;
+      });
       return;
     }
 
@@ -89,25 +107,46 @@ export default function IssueConversation({ issueId, readOnly, demoApi }) {
     });
 
     if (res.ok) {
-      setComments((prev) => prev.filter((c) => c._id !== commentId));
+      setComments((prev) => {
+        const next = prev.filter((c) => c._id !== commentId);
+        onCommentCountChange?.(issueId, next.length);
+        return next;
+      });
     }
   }
 
   const ownAuthorId = demoApi ? "demo-you" : session?.user?.id;
+  const isDrawer = variant === "drawer";
 
   return (
-    <div className="border-t border-slate-800 pt-4">
-      <h3 className="mb-1 text-sm font-semibold text-slate-200">Conversation</h3>
-      <p className="mb-3 text-xs text-slate-500">
-        Notes, questions, and updates — use this when details need clarification.
-      </p>
+    <div
+      className={`flex min-h-0 flex-1 flex-col ${isDrawer ? "" : "border-t border-slate-800 pt-4"}`}
+    >
+      {!isDrawer && (
+        <>
+          <h3 className="mb-1 text-sm font-semibold text-slate-200">Conversation</h3>
+          <p className="mb-3 text-xs text-slate-500">
+            Notes, questions, and updates — use this when details need clarification.
+          </p>
+        </>
+      )}
+
+      {isDrawer && (
+        <p className="mb-3 shrink-0 text-xs text-slate-500">
+          Notes, questions, and updates on this issue.
+        </p>
+      )}
 
       {loading ? (
         <p className="text-xs text-slate-500">Loading conversation…</p>
       ) : comments.length === 0 ? (
         <p className="mb-3 text-xs text-slate-500">No comments yet.</p>
       ) : (
-        <ul className="mb-4 max-h-48 space-y-3 overflow-y-auto pr-1">
+        <ul
+          className={`mb-4 space-y-3 overflow-y-auto pr-1 ${
+            isDrawer ? "min-h-0 flex-1" : "max-h-48"
+          }`}
+        >
           {comments.map((comment) => {
             const isOwn = comment.authorId === ownAuthorId;
             return (
@@ -146,7 +185,7 @@ export default function IssueConversation({ issueId, readOnly, demoApi }) {
           Archived board — conversation is read-only.
         </p>
       ) : (
-        <div className="space-y-2">
+        <div className={`space-y-2 ${isDrawer ? "shrink-0" : ""}`}>
           <textarea
             rows={3}
             value={body}

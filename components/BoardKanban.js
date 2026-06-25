@@ -19,6 +19,7 @@ import { PRIORITY_WEIGHT } from "@/lib/constants";
 import BoardFilters from "@/components/BoardFilters";
 import IssueCard from "@/components/IssueCard";
 import IssueModal from "@/components/IssueModal";
+import IssueConversationDrawer from "@/components/IssueConversationDrawer";
 
 function filterAndSortIssues(
   issues,
@@ -105,6 +106,7 @@ export default function BoardKanban({
   const [activeId, setActiveId] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingIssue, setEditingIssue] = useState(null);
+  const [conversationIssue, setConversationIssue] = useState(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -283,6 +285,25 @@ export default function BoardKanban({
     }
   }
 
+  const handleCommentCountChange = useCallback((issueId, count) => {
+    setIssues((prev) =>
+      prev.map((i) =>
+        i._id === issueId && i.commentCount !== count
+          ? { ...i, commentCount: count }
+          : i,
+      ),
+    );
+    setConversationIssue((prev) =>
+      prev && prev._id === issueId && prev.commentCount !== count
+        ? { ...prev, commentCount: count }
+        : prev,
+    );
+  }, []);
+
+  const drawerIssue =
+    conversationIssue &&
+    issues.find((i) => i._id === conversationIssue._id);
+
   return (
     <div className="space-y-4">
       <BoardFilters
@@ -346,6 +367,7 @@ export default function BoardKanban({
                           setEditingIssue(item);
                           setModalOpen(true);
                         }}
+                        onOpenConversation={setConversationIssue}
                       />
                     ))}
                   </div>
@@ -357,7 +379,12 @@ export default function BoardKanban({
         <DragOverlay>
           {activeIssue ? (
             <div className="w-64 opacity-90">
-              <IssueCard issue={activeIssue} readOnly onClick={() => {}} />
+              <IssueCard
+                issue={activeIssue}
+                readOnly
+                onClick={() => {}}
+                onOpenConversation={() => {}}
+              />
             </div>
           ) : null}
         </DragOverlay>
@@ -375,6 +402,14 @@ export default function BoardKanban({
         readOnly={readOnly}
         onSave={handleSaveIssue}
         demoApi={demoApi}
+      />
+
+      <IssueConversationDrawer
+        issue={drawerIssue || null}
+        onClose={() => setConversationIssue(null)}
+        readOnly={readOnly}
+        demoApi={demoApi}
+        onCommentCountChange={handleCommentCountChange}
       />
     </div>
   );
