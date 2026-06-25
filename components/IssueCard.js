@@ -2,7 +2,13 @@
 
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { browserLabel, deviceLabel, getColumnTheme, getPriorityTheme } from "@/lib/constants";
+import {
+  browserLabel,
+  deviceLabel,
+  getColumnTheme,
+  getPriorityTheme,
+  previewCardDescription,
+} from "@/lib/constants";
 
 function ConversationIcon() {
   return (
@@ -39,6 +45,7 @@ export default function IssueCard({ issue, onClick, onOpenConversation, readOnly
   const commentCount = issue.commentCount || 0;
   const statusTheme = getColumnTheme(issue.status);
   const priorityTheme = getPriorityTheme(issue.priority);
+  const descriptionPreview = previewCardDescription(issue.description);
 
   return (
     <article
@@ -88,6 +95,12 @@ export default function IssueCard({ issue, onClick, onOpenConversation, readOnly
       </div>
 
       <h3 className="mb-2 text-sm font-medium text-slate-100 line-clamp-2">{issue.title}</h3>
+
+      {descriptionPreview && (
+        <p className="mb-2 whitespace-pre-wrap break-words text-xs leading-relaxed text-slate-400">
+          {descriptionPreview}
+        </p>
+      )}
 
       {(issue.pageName || issue.device || issue.browser) && (
         <p className="mb-1 text-[11px] text-slate-500 line-clamp-1">
