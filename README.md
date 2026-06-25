@@ -24,7 +24,7 @@ Designed for **company deployments**: each install connects to **one MongoDB ins
 | Feature | Description |
 |--------|-------------|
 | **Board directory** | All QA boards grouped by project; filter active / archived / all |
-| **Kanban board** | Drag issues across New Issues → In Progress → Ready for UAT/QA → Issue Not Resolved → Issue Resolved → Prod Issue/Out of Scope |
+| **Kanban board** | Drag issues across New Issues → In Progress → Ready for QA → Ready for UAT → Issue Not Resolved → Issue Resolved → Prod Issue/Out of Scope |
 | **Issue tracking** | Auto `QA-#` IDs, titles, descriptions, priorities |
 | **Conversation** | Threaded comments per issue for notes and discrepancy discussion |
 | **Issue context** | Page name, device, browser, page link, and issue author on each ticket |
