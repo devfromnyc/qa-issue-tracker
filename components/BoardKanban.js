@@ -21,6 +21,8 @@ import {
   getColumnTheme,
 } from "@/lib/constants";
 import BoardFilters from "@/components/BoardFilters";
+import BoardLayoutToggle from "@/components/BoardLayoutToggle";
+import BoardAccordionView from "@/components/BoardAccordionView";
 import IssueCard from "@/components/IssueCard";
 import IssueModal from "@/components/IssueModal";
 import IssueConversationDrawer from "@/components/IssueConversationDrawer";
@@ -71,6 +73,15 @@ function filterAndSortIssues(
   return list;
 }
 
+const LAYOUT_STORAGE_KEY = "qa-board-layout";
+
+function loadLayoutPreference() {
+  if (typeof window === "undefined") return "kanban";
+  return sessionStorage.getItem(LAYOUT_STORAGE_KEY) === "accordion"
+    ? "accordion"
+    : "kanban";
+}
+
 function DroppableColumn({ column, children, count }) {
   const { setNodeRef, isOver } = useDroppable({ id: column.id });
   const columnTheme = getColumnTheme(column.id);
@@ -114,6 +125,41 @@ export default function BoardKanban({
   const [modalOpen, setModalOpen] = useState(false);
   const [editingIssue, setEditingIssue] = useState(null);
   const [conversationIssue, setConversationIssue] = useState(null);
+  const [layout, setLayout] = useState("kanban");
+  const [expandedSections, setExpandedSections] = useState(
+    () => new Set(["new_issues"]),
+  );
+
+  useEffect(() => {
+    setLayout(loadLayoutPreference());
+  }, []);
+
+  function handleLayoutChange(nextLayout) {
+    setLayout(nextLayout);
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem(LAYOUT_STORAGE_KEY, nextLayout);
+    }
+    if (nextLayout === "accordion" && expandedSections.size === 0) {
+      setExpandedSections(new Set(["new_issues"]));
+    }
+  }
+
+  function toggleAccordionSection(columnId) {
+    setExpandedSections((prev) => {
+      const next = new Set(prev);
+      if (next.has(columnId)) {
+        next.delete(columnId);
+      } else {
+        next.add(columnId);
+      }
+      return next;
+    });
+  }
+
+  const openIssue = useCallback((item) => {
+    setEditingIssue(item);
+    setModalOpen(true);
+  }, []);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -311,6 +357,11 @@ export default function BoardKanban({
     conversationIssue &&
     issues.find((i) => i._id === conversationIssue._id);
 
+  const sortedColumns = useMemo(
+    () => [...board.columns].sort((a, b) => a.order - b.order),
+    [board.columns],
+  );
+
   return (
     <div className="space-y-4">
       <BoardFilters
@@ -351,6 +402,8 @@ export default function BoardKanban({
         })}
       </div>
 
+      <BoardLayoutToggle layout={layout} onLayoutChange={handleLayoutChange} />
+
       <DndContext
         sensors={sensors}
         collisionDetection={(args) => {
@@ -363,10 +416,9 @@ export default function BoardKanban({
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
-        <div className="flex gap-4 overflow-x-auto pb-4">
-          {board.columns
-            .sort((a, b) => a.order - b.order)
-            .map((column) => (
+        {layout === "kanban" ? (
+          <div className="flex gap-4 overflow-x-auto pb-4">
+            {sortedColumns.map((column) => (
               <DroppableColumn
                 key={column.id}
                 column={column}
@@ -383,10 +435,7 @@ export default function BoardKanban({
                         key={issue._id}
                         issue={issue}
                         readOnly={readOnly}
-                        onClick={(item) => {
-                          setEditingIssue(item);
-                          setModalOpen(true);
-                        }}
+                        onClick={openIssue}
                         onOpenConversation={setConversationIssue}
                       />
                     ))}
@@ -394,11 +443,24 @@ export default function BoardKanban({
                 </SortableContext>
               </DroppableColumn>
             ))}
-        </div>
+          </div>
+        ) : (
+          <BoardAccordionView
+            columns={sortedColumns}
+            issuesByColumn={issuesByColumn}
+            expandedSections={expandedSections}
+            onToggleSection={toggleAccordionSection}
+            readOnly={readOnly}
+            onOpenIssue={openIssue}
+            onOpenConversation={setConversationIssue}
+          />
+        )}
 
         <DragOverlay>
           {activeIssue ? (
-            <div className="w-64 opacity-90">
+            <div
+              className={`opacity-90 ${layout === "accordion" ? "w-full max-w-xl" : "w-64"}`}
+            >
               <IssueCard
                 issue={activeIssue}
                 readOnly
